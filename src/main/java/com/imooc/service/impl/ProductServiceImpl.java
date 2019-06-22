@@ -1,7 +1,10 @@
 package com.imooc.service.impl;
 
 import com.imooc.Enums.ProductStatusEnum;
+import com.imooc.Enums.ResultEnum;
 import com.imooc.dataobject.ProductInfo;
+import com.imooc.dto.CartDTO;
+import com.imooc.exception.SellException;
 import com.imooc.repository.ProductInfoRepository;
 import com.imooc.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,29 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductInfoRepository repository;
 
+    @Override
+    public void increaseStock(List<CartDTO> cartDTOList) {
+
+    }
+
+    @Override
+    public void decreaseStock(List<CartDTO> cartDTOList) {
+        for(CartDTO cartDTO: cartDTOList){
+            ProductInfo productInfo = repository.findById(cartDTO.getProductId()).get();
+            System.out.println("productInfo:" + productInfo);
+            if(productInfo == null){
+                throw new SellException(ResultEnum.PRODUCT_NOT_EXIST);
+            }
+
+            Integer stockResult = productInfo.getProductStock() - cartDTO.getProductQuantity();
+            if(stockResult < 0){
+                throw new SellException(ResultEnum.PRODUCT_NOT_ENOUGH);
+            }
+
+            productInfo.setProductStock(stockResult);
+            repository.save(productInfo);
+        }
+    }
 
     @Override
     public ProductInfo findOne(String productId) {
